@@ -14,3 +14,5 @@ self.addEventListener('fetch',e=>{const r=e.request;if(r.method!='GET')return;
  if(r.mode=='navigate'){e.respondWith(fetch(new Request(r.url,{cache:'no-cache'})).then(put).catch(()=>caches.match(r,{ignoreSearch:true}).then(h=>h||caches.match('index.html'))));return}
  // Everything else: cached copy first, refreshed in the background
  e.respondWith(caches.match(r,{ignoreSearch:true}).then(h=>{const n=fetch(r).then(put).catch(()=>h);return h||n}))});
+navigator.serviceWorker.register('Masram-gondi-pwa/sw.js')
+

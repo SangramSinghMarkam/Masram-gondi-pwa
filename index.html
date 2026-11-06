@@ -90,7 +90,7 @@ input[type=text],select{padding:10px;border:1px solid var(--b);border-radius:10p
  <div class="about"><h2>Sangram Singh Markam</h2><p>Author &amp; developer</p>
   <p>&#128222; <a href="tel:+918979607254">8979607254</a></p>
   <p>&#9993;&#65039; <a href="mailto:sangramsinghmarkam01@gmail.com">sangramsinghmarkam01@gmail.com</a></p></div>
- <div class="about" id="instcard"><h2>&#128242; Install this app</h2><p id="insttx"></p><div class="row"><button class="btn p" id="instbtn"></button></div></div>
+ <div class="about" id="instcard"><h2>&#128242; Install this app</h2><p id="insttx"></p><div class="row"><button class="btn p" id="instbtn"></button></div><p class="sub" id="offst"></p></div>
  <div class="about"><h2>&#10084;&#65039; Support this app</h2>
   <p>Please help develop this app. Your donation helps keep Masram Gondi learning free and pays for new lessons and features.</p>
   <p>UPI ID: <b id="upi">sangramsinghmarkam01-1@okhdfcbank</b></p>
@@ -352,5 +352,13 @@ if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWor
  addEventListener('appinstalled',()=>{dp=null;close(false);card()});
  addEventListener('load',()=>{card();if(local||ios)setTimeout(()=>open(mode()),1200)});
  card();
+ // Offline status line on the Support screen
+ async function offState(){const s=$('#offst');
+  if(local||!('serviceWorker' in navigator)){s.textContent='Offline mode works when the app is opened from its https:// web address.';return}
+  s.textContent='Offline mode: preparing\u2026';
+  try{await navigator.serviceWorker.ready;const l=document.querySelector('link[rel=stylesheet][href^="http"]');
+   const f=(l&&await caches.match(l.href))||await caches.match('MasaramGondi.ttf');
+   s.textContent=f?'Offline mode: ready. The app and its fonts work without internet.':'Offline mode: the app is ready. Open it once more while online so the Hindi and Gondi fonts are saved too.'}catch(e){s.textContent='Offline mode is not available in this browser.'}}
+ offState();$('#sup').addEventListener('click',offState);
 })();
 </script></body></html>

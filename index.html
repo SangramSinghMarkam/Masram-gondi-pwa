@@ -60,6 +60,11 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
 @keyframes instup{from{transform:translateY(100%)}}
 @media(min-width:600px){.inst-scrim{align-items:center}.inst{border-radius:20px}}
 @media(prefers-reduced-motion:reduce){.inst{animation:none}}
+.qw{font:56px/1.4 var(--g);text-align:center;word-break:break-word;margin:6px 0}
+.qa{display:grid;gap:8px;margin:12px 0}.qa .btn{text-align:left;font-size:18px}.qa .btn.g{font-size:30px}.qa .btn small{display:block;font:15px var(--d);color:var(--m)}
+.btn.ok{background:#2e9e5b;color:#fff;border-color:#2e9e5b}.btn.ok small{color:#fff}.btn.no{background:#d9534f;color:#fff;border-color:#d9534f}.btn.no small{color:#fff}
+.pbar{height:6px;background:var(--b);border-radius:3px;overflow:hidden;margin:8px 0}.pbar i{display:block;height:100%;background:var(--p)}
+.bigscore{font-size:48px;font-weight:700;text-align:center;margin:6px 0}
 </style></head><body>
 <header><button id="back" hidden>&larr;</button><h1 id="ttl">Masram Gondi Learning</h1></header>
 <main>
@@ -69,7 +74,7 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
 <section id="dict" class="v" hidden>
  <input type="search" id="dq" placeholder="Search Gondi, Roman (kamala), Hindi or English…" autocomplete="off">
  <p class="sub g" id="dh"></p>
- <div class="row"><button class="btn" id="dfav">&#9734; Saved</button><button class="btn" id="drnd">&#127922; Random</button><button class="btn" id="dload">&#128194; Load JSON</button><span class="sub" id="dcnt"></span></div>
+ <div class="row"><button class="btn" id="dfav">&#9734; Saved</button><button class="btn" id="drnd">&#127922; Random</button><button class="btn" id="dload">&#128194; Load JSON</button><button class="btn" id="dbuilt">&#128218; Built-in words</button><button class="btn" id="dquiz">&#127919; Word quiz</button><span class="sub" id="dcnt"></span></div>
  <div id="wotd" class="about" hidden></div>
  <div class="row" id="az"></div><div id="dlist"></div>
 </section>
@@ -115,6 +120,7 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
  <div class="row"><input type="text" id="ans" autocapitalize="characters" autocomplete="off" placeholder="e.g. KA"><button class="btn p" id="sub">Submit</button></div>
  <p id="fb">&nbsp;</p><div class="row"><b id="score"></b><button class="btn" id="rst">Reset stats</button></div>
 </section>
+<section id="wq" class="v" hidden></section>
 <section id="conv" class="v" hidden>
  <div class="row" id="cdir"><button class="chip on" data-d="g2h">Gondi &rarr; Hindi</button><button class="chip" data-d="h2g">Hindi &rarr; Gondi</button><button class="btn" id="cswap" aria-label="Swap direction and reuse the result">&#8646; Swap</button></div>
  <p><b id="cinl"></b></p>
@@ -178,10 +184,10 @@ const L={vow:['Independent Vowels',VOW.map(v=>[ch(v[0]),v[1].toUpperCase()])],
  con:['Consonants',CR.map((r,i)=>[ch(0x11D0C+i),(r+'a').toUpperCase()])],
  sig:['Dependent Signs',[...SIG.map(s=>[KA+ch(s[0]),'K'+s[1].toUpperCase()]),...MRK.map(m=>[KA+ch(m[0]),'KA '+m[3]])]],
  dig:['Digits',[...Array(10)].map((_,i)=>[ch(0x11D50+i),''+i])]};
-let cur0='home';const BK={word:'dict',snd:'about'},T={snd:'Sound Mapping',conv:'Hindi \u21c4 Gondi Converter',dict:'Gondi Dictionary',editor:'Create / Edit Dictionary',about:'About & Support',word:'Word'};
+let cur0='home';const BK={word:'dict',snd:'about'},T={snd:'Sound Mapping',conv:'Hindi \u21c4 Gondi Converter',dict:'Gondi Dictionary',editor:'Create / Edit Dictionary',about:'About & Support',word:'Word',wq:'Word Quiz'};
 function show(v,t){cur0=v;document.querySelectorAll('.v').forEach(e=>e.hidden=e.id!=v);$('#back').hidden=v=='home';$('#ttl').textContent=t||T[v]||'Masram Gondi Learning';if(v!='reader')stop();scrollTo(0,0)}
 $('#back').onclick=()=>{const p=BK[cur0]||'home';show(p);if(p=='dict')dRender()};
-[...Object.keys(L).map((k,i)=>[(i+1)+'. Learn '+L[k][0],()=>lesson(k)]),['5. Take Quiz',()=>{show('quiz','Quiz');next()}],['6. Reader & Hindi Audio',()=>{show('reader','Gondi → Hindi Audio');render()}],['7. Hindi \u21c4 Gondi Converter',()=>{show('conv');cRender()}],['8. Gondi Dictionary',()=>{show('dict');dRender()}],['9. Create / Edit Dictionary',()=>{show('editor');eRender()}]]
+[...Object.keys(L).map((k,i)=>[(i+1)+'. Learn '+L[k][0],()=>lesson(k)]),['5. Take Quiz',()=>{show('quiz','Quiz');next()}],['6. Reader & Hindi Audio',()=>{show('reader','Gondi → Hindi Audio');render()}],['7. Hindi \u21c4 Gondi Converter',()=>{show('conv');cRender()}],['8. Gondi Dictionary',()=>{show('dict');dRender()}],['9. Create / Edit Dictionary',()=>{show('editor');eRender()}],['10. Word Quiz (from Dictionary)',()=>{show('wq');wqSetup()}]]
  .forEach(([t,f])=>{const b=document.createElement('button');b.className='btn';b.textContent=t;b.onclick=f;$('#menu').append(b)});
 function lesson(k){show('lesson',L[k][0]);const g=$('#grid');g.textContent='';
  L[k][1].forEach(([c,n])=>{const d=document.createElement('div');d.className='card';d.innerHTML='<div class="g">'+c+'</div><small>'+n+'</small>';d.onclick=()=>play([{t:toDev(c),e:[]}]);g.append(d)})}
@@ -238,16 +244,16 @@ let DB=[],FAV=new Set(),favOnly=false,ltr='',curE;
 try{FAV=new Set(JSON.parse(localStorage.getItem('gdFav')||'[]'))}catch(e){}
 const saveFav=()=>{try{localStorage.setItem('gdFav',JSON.stringify([...FAV]))}catch(e){}};
 const save=()=>idb('put',DB).catch(()=>alert('Could not store the dictionary on this device. Please use Save JSON to keep a backup.'));
-idb('get').then(d=>{if(Array.isArray(d))DB=d;dRender();eRender()}).catch(()=>{});
+idb('get').then(d=>{if(Array.isArray(d))DB=d;dRender();eRender();if(!DB.length&&!seeded())seed()}).catch(()=>{seed()});
 const key=w=>w.toLowerCase(),sorted=()=>[...DB].sort((a,b)=>key(a.primaryWord)<key(b.primaryWord)?-1:1);
 const vis=e=>e.image?'<img src="'+esc(e.image)+'" alt="">':esc(e.emoji||'📖');
 function find(q){q=q.trim();const all=sorted();if(!q)return all;const ql=q.toLowerCase(),g=fromRoman(q).replace(/\u{11D44}$/u,''),rank=e=>{const w=e.primaryWord;return w.startsWith(q)||w.startsWith(g)||toDev(w).startsWith(q)?0:1};
  return all.filter(e=>{const w=e.primaryWord,d=toDev(w);return w.toLowerCase().includes(ql)||w.includes(g)||d.includes(q)||e.associatedWords.some(m=>m.toLowerCase().includes(ql))}).sort((a,b)=>rank(a)-rank(b))}
 function item(e){const d=document.createElement('div');d.className='ent';
- d.innerHTML='<div class="vis">'+vis(e)+'</div><div class="mid"><div class="g hw">'+esc(e.primaryWord)+'</div><div class="dev sub">'+esc(toDev(e.primaryWord))+'</div><div class="sub">'+esc(e.associatedWords.slice(0,4).join(', '))+'</div></div><button class="star">'+(FAV.has(e.id)?'★':'☆')+'</button>';
+ d.innerHTML='<div class="vis">'+vis(e)+'</div><div class="mid"><div class="g hw">'+esc(e.primaryWord)+'</div><div class="dev sub">'+esc(toDev(e.primaryWord))+'</div><div class="sub">'+esc(e.associatedWords.filter(w=>!isG(w)).slice(0,4).join(', '))+'</div></div><button class="star">'+(FAV.has(e.id)?'★':'☆')+'</button>';
  d.onclick=ev=>{if(ev.target.closest('.star')){fav(e);dRender()}else openW(e)};return d}
 function fav(e){FAV.has(e.id)?FAV.delete(e.id):FAV.add(e.id);saveFav()}
-function dRender(){const q=$('#dq').value.trim(),all=sorted();let L=find(q);$('#dcnt').textContent=DB.length+' words';
+function dRender(){BK.word='dict';const q=$('#dq').value.trim(),all=sorted();let L=find(q);$('#dcnt').textContent=DB.length+' words';
  $('#dfav').className='btn'+(favOnly?' p':'');if(favOnly)L=L.filter(e=>FAV.has(e.id));
  const g=fromRoman(q);$('#dh').textContent=q&&/^[a-z' ]+$/i.test(q)&&g!=q?'→ '+g:'';
  const az=$('#az');az.textContent='';az.hidden=!!q||!DB.length;
@@ -259,7 +265,7 @@ function dRender(){const q=$('#dq').value.trim(),all=sorted();let L=find(q);$('#
  else if(L.length>300){const p=document.createElement('p');p.className='sub';p.textContent='Showing 300 of '+L.length+' — search or pick a letter to narrow down.';l.append(p)}}
 function openW(e){curE=e;show('word');$('#wd').textContent=e.primaryWord;$('#wdv').textContent=toDev(e.primaryWord);$('#wvis').innerHTML=e.image||e.emoji?vis(e):'';
  $('#wfav').textContent=FAV.has(e.id)?'★ Saved':'☆ Save';
- const chips=(box,list,cb)=>{box.textContent='';list.forEach(w=>{const l=DB.find(x=>x.primaryWord==w&&x!=e),b=document.createElement('button');b.className='chip'+(l?' on':'');b.textContent=w;b.onclick=()=>cb(w,l);box.append(b)})};
+ const chips=(box,list,cb)=>{box.textContent='';list.forEach(w=>{const l=DB.find(x=>x.primaryWord==w&&x!=e),b=document.createElement('button');b.className='chip'+(l?' on':'')+(isG(w)?' g':'');b.textContent=w;b.onclick=()=>cb(w,l);box.append(b)})};
  chips($('#wtags'),e.associatedWords,(w,l)=>l?openW(l):(show('dict'),$('#dq').value=w,ltr='',favOnly=false,dRender()));
  const from=DB.filter(x=>x!=e&&x.associatedWords.includes(e.primaryWord)).map(x=>x.primaryWord);$('#wlh').hidden=!from.length;
  chips($('#wlk'),from,(w,l)=>openW(DB.find(x=>x.primaryWord==w)))}
@@ -304,6 +310,76 @@ $('#elist').onclick=ev=>{const row=ev.target.closest('.ent'),x=row&&DB.find(d=>d
 $('#elist').onkeydown=ev=>{if(ev.key=='Enter'&&ev.target.tagName=='INPUT')ev.target.closest('.ent').querySelector('.add').click()};
 $('#sup').onclick=e=>{e.preventDefault();show('about','About & Support')};
 $('#cu').onclick=async()=>{try{await navigator.clipboard.writeText($('#upi').textContent);$('#cm').textContent='UPI ID copied. Thank you for your support!'}catch(e){$('#cm').textContent='Could not copy. Please copy the UPI ID manually.'}};
+// ---- Built-in dictionary (converter format) ----
+const isG=s=>/[\u{11D00}-\u{11D5F}]/u.test(s);
+const BUILTIN='gondi_dictionary_converted.json',seeded=()=>{try{return localStorage.getItem('gdSeeded')=='1'}catch(e){return false}};
+async function builtin(){const r=await fetch(BUILTIN);if(!r.ok)throw new Error('missing');return norm(await r.json())}
+function mergeIn(n){n.forEach(x=>{const o=DB.find(d=>d.primaryWord==x.primaryWord);
+ if(o){x.associatedWords.forEach(w=>{if(!o.associatedWords.includes(w))o.associatedWords.push(w)});o.image=o.image||x.image;o.emoji=o.emoji||x.emoji}
+ else{if(DB.some(d=>d.id==x.id))x.id=uid();DB.push(x)}})}
+async function seed(){try{const n=await builtin();if(!n.length||DB.length)return;DB=n;idb('put',DB).catch(()=>{});try{localStorage.setItem('gdSeeded','1')}catch(e){}dRender();eRender()}catch(e){}}
+$('#dbuilt').onclick=async()=>{let n;try{n=await builtin()}catch(e){return alert('The built-in dictionary could not be loaded. Open the app once while online, then try again.')}
+ if(DB.length&&confirm('Replace your current dictionary with the built-in one ('+n.length+' words)?\n\nOK = Replace\nCancel = Keep my words and add the missing ones'))DB=[];
+ mergeIn(n);try{localStorage.setItem('gdSeeded','1')}catch(e){}save();dRender();eRender()};
+// ---- Word quiz: built from the dictionary (meanings are told apart by script: 1st Devanagari = Hindi, 2nd = Marathi, Latin = English, Telugu = Telugu) ----
+const WLANG={hi:'हिन्दी',en:'English',mr:'मराठी',te:'తెలుగు'};
+function meanOf(e){const o={hi:[],en:[],mr:[],te:[]};let dv=0;
+ e.associatedWords.forEach(w=>{if(isG(w))return;const p=w.split(' / ').map(x=>x.trim()).filter(Boolean);
+  if(/[\u0C00-\u0C7F]/.test(w))o.te=o.te.concat(p);
+  else if(/[\u0900-\u097F]/.test(w)){dv++;if(dv==1)o.hi=p;else if(dv==2)o.mr=p}
+  else if(/[A-Za-z]/.test(w))o.en=o.en.concat(p)});return o}
+let WQ=Object.assign({mode:'g2m',lang:'hi',n:10,hint:true},(()=>{try{return JSON.parse(localStorage.getItem('gdWq'))||{}}catch(e){return{}}})()),WS=null;
+const wqSave=()=>{try{localStorage.setItem('gdWq',JSON.stringify({mode:WQ.mode,lang:WQ.lang,n:WQ.n,hint:WQ.hint}))}catch(e){}};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function wqPool(){return DB.map(e=>({e,m:meanOf(e)[WQ.lang].filter(x=>x.length<=45)})).filter(x=>x.m.length)}
+function wqSetup(){WS=null;const pool=wqPool().length,b=$('#wq');
+ const seg=(k,items)=>'<div class="row">'+items.map(([v,t])=>'<button class="chip'+(WQ[k]==v?' on':'')+'" data-k="'+k+'" data-v="'+v+'">'+t+'</button>').join('')+'</div>';
+ let best=null;try{best=JSON.parse(localStorage.getItem('gdWqBest'))}catch(e){}
+ b.innerHTML='<p><b>Quiz type</b></p>'+seg('mode',[['g2m','Gondi word → meaning'],['m2g','Meaning → Gondi word']])+
+  '<p><b>Meaning language</b></p>'+seg('lang',Object.keys(WLANG).map(k=>[k,WLANG[k]]))+
+  '<p><b>Questions</b></p>'+seg('n',[[10,'10'],[20,'20'],[30,'30']])+
+  '<label class="row"><input type="checkbox" id="wqh"'+(WQ.hint?' checked':'')+'> Show Hindi (Devanagari) spelling with each word</label>'+
+  '<p class="sub">'+pool+' words available in '+WLANG[WQ.lang]+(best?' · Best: '+best.ok+' / '+best.all:'')+'</p>'+
+  (DB.length?'':'<p class="warn">The dictionary is empty. Tap &ldquo;Built-in words&rdquo; on the Gondi Dictionary screen first.</p>')+
+  '<button class="btn p" id="wqgo"'+(pool<4?' disabled':'')+'>Start quiz</button>';
+ b.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{const k=x.dataset.k,v=x.dataset.v;WQ[k]=k=='n'?+v:v;wqSave();wqSetup()});
+ $('#wqh').onchange=e=>{WQ.hint=e.target.checked;wqSave()};
+ $('#wqgo').onclick=()=>wqStart()}
+function wqMake(items,all){return items.map(t=>{const mine=new Set(t.m),ok=t.m[Math.random()*t.m.length|0],used=new Set([ok]),wds=new Set([t.e.primaryWord]),d=[];
+  for(const c of shuf(all)){if(d.length==3)break;if(c.e.primaryWord==t.e.primaryWord)continue;
+   if(c.m.some(x=>mine.has(x)||used.has(x)))continue;used.add(c.m[0]);wds.add(c.e.primaryWord);d.push({e:c.e,txt:c.m[0]})}
+  return{e:t.e,ans:ok,opts:shuf([{e:t.e,txt:ok},...d]),done:null}})}
+function wqStart(retry){const all=wqPool();if(all.length<4)return wqSetup();
+ const src=retry||shuf(all).slice(0,Math.min(WQ.n,all.length));
+ WS={qs:wqMake(src,all),i:0,ok:0};wqAsk()}
+function wqAsk(){const b=$('#wq'),q=WS.qs[WS.i],g2m=WQ.mode=='g2m',w=q.e.primaryWord,dv=toDev(w);
+ const head=g2m?'<div class="qw">'+esc(w)+'</div>'+(WQ.hint?'<div class="dev" style="text-align:center;font-size:24px">'+esc(dv)+'</div>':'')+
+   '<div class="row" style="justify-content:center"><button class="btn" id="wql">&#9654; Listen (Hindi)</button></div><p style="text-align:center">What does this word mean?</p>'
+  :'<p class="sub" style="text-align:center">Which Gondi word means</p><div class="qw" style="font:30px var(--d)">'+esc(q.ans)+'</div>';
+ b.innerHTML='<div class="row"><span class="sub">Question '+(WS.i+1)+' of '+WS.qs.length+'</span><span class="sub" style="margin-left:auto">Score '+WS.ok+'</span></div>'+
+  '<div class="pbar"><i style="width:'+(WS.i/WS.qs.length*100)+'%"></i></div>'+head+
+  '<div class="qa" id="wqo">'+q.opts.map((o,i)=>g2m?'<button class="btn" data-i="'+i+'">'+esc(o.txt)+'</button>'
+   :'<button class="btn g" data-i="'+i+'">'+esc(o.e.primaryWord)+(WQ.hint?'<small>'+esc(toDev(o.e.primaryWord))+'</small>':'')+'</button>').join('')+'</div>'+
+  '<p id="wqf" role="status">&nbsp;</p><div id="wqn"></div>';
+ const l=$('#wql');if(l)l.onclick=()=>play([{t:dv,e:[]}]);
+ $('#wqo').onclick=ev=>{const x=ev.target.closest('[data-i]');if(!x||q.done!=null)return;wqPick(+x.dataset.i)}}
+function wqPick(i){const q=WS.qs[WS.i],ok=q.opts[i].e.primaryWord==q.e.primaryWord;q.done=i;if(ok)WS.ok++;
+ document.querySelectorAll('#wqo .btn').forEach((b,k)=>{b.disabled=true;if(q.opts[k].e.primaryWord==q.e.primaryWord)b.classList.add('ok');else if(k==i)b.classList.add('no')});
+ $('#wqf').textContent=(ok?'Correct! ':'Not quite. ')+toDev(q.e.primaryWord)+' = '+q.ans;
+ const last=WS.i==WS.qs.length-1;
+ $('#wqn').innerHTML='<div class="row"><button class="btn p" id="wqnx">'+(last?'See results':'Next question')+'</button><button class="btn" id="wqfull">Full entry</button></div>';
+ $('#wqnx').onclick=()=>{WS.i++;WS.i>=WS.qs.length?wqEnd():wqAsk()};$('#wqnx').focus();
+ $('#wqfull').onclick=()=>{BK.word='wq';openW(q.e)}}
+function wqEnd(){const b=$('#wq'),n=WS.qs.length,miss=WS.qs.filter(q=>q.opts[q.done].e.primaryWord!=q.e.primaryWord);
+ let best=null;try{best=JSON.parse(localStorage.getItem('gdWqBest'))}catch(e){}
+ if(!best||WS.ok/n>best.ok/best.all)try{localStorage.setItem('gdWqBest',JSON.stringify({ok:WS.ok,all:n}))}catch(e){}
+ b.innerHTML='<div class="bigscore">'+WS.ok+' / '+n+'</div><p class="sub" style="text-align:center">'+Math.round(WS.ok*100/n)+'%</p>'+
+  (miss.length?'<h3>Missed words</h3>'+miss.map((q,i)=>'<div class="ent" data-m="'+i+'"><div class="mid"><div class="g hw">'+esc(q.e.primaryWord)+'</div><div class="dev sub">'+esc(toDev(q.e.primaryWord))+' — '+esc(q.ans)+'</div></div></div>').join(''):'<p style="text-align:center">Perfect round!</p>')+
+  '<div class="row">'+(miss.length?'<button class="btn p" id="wqr">Retry missed words</button>':'')+'<button class="btn'+(miss.length?'':' p')+'" id="wqa">New quiz</button></div>';
+ b.querySelectorAll('[data-m]').forEach(x=>x.onclick=()=>{BK.word='wq';openW(miss[+x.dataset.m].e)});
+ const r=$('#wqr');if(r)r.onclick=()=>{const m=miss.map(q=>({e:q.e,m:meanOf(q.e)[WQ.lang].filter(x=>x.length<=45)}));WS={qs:wqMake(m,wqPool()),i:0,ok:0};wqAsk()};
+ $('#wqa').onclick=wqSetup}
+$('#dquiz').onclick=()=>{show('wq');wqSetup()};
 // ---- Converter screen ----
 let cdir='g2h';const cin=$('#cin');
 function cRender(){const g=cdir=='g2h';

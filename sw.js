@@ -1,7 +1,7 @@
 // Masram Gondi Learning - offline service worker (works from a GitHub Pages subpath such as /repo-name/)
-const V='masram-v9';
+const V='masram-v10';
 const CORE=['./','index.html'];                                                    // must be saved or the worker does not install
-const EXTRA=['manifest.webmanifest','icon-192.png','icon-512.png','icon-maskable-512.png','MasaramGondi.ttf']; // saved if present
+const EXTRA=['manifest.webmanifest','icon-192.png','icon-512.png','icon-maskable-512.png','MasaramGondi.ttf','gondi_dictionary_converted.json']; // saved if present
 const FONT_CSS='https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Masaram+Gondi&display=swap';
 const INDEX=new URL('index.html',self.registration.scope).href;
 const NET_WAIT=3000; // on a slow or flaky connection, show the saved app after 3 seconds

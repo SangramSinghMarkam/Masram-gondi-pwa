@@ -18,3 +18,11 @@ Open pages refresh themselves once the new version is installed.
 ## Changing how letters sound
 Open **Support page > Developer option**, enter the developer code, then tap **Sound Mapping (pronunciation)**. Type the Hindi sound you want for any letter, vowel sign or digit and tap the play button to test it.
 Changes are saved on the device and used everywhere the app speaks. Use **Save sounds file** to share a regional pronunciation set and **Load sounds file** to apply one.
+
+## Built-in dictionary and Word Quiz
+- `gondi_dictionary_converted.json` is the built-in dictionary (3,351 words). On the first visit, if the dictionary is empty, the app loads it automatically. It is saved for offline use. In the Gondi Dictionary screen, **Built-in words** loads it again (replace, or add missing words).
+- File format (same as the Word Link app): `id`, `primaryWord` (Masram Gondi), `associatedWords`, `image`, `emoji`.
+- `associatedWords` order: Hindi, English, Marathi, Telugu meanings (each present only if known; several senses are joined with ` / `), then related Gondi words (variants / compare / see). The quiz tells meanings apart by script: first Devanagari = Hindi, second = Marathi, Latin = English, Telugu script = Telugu. Gondi-script items are related words.
+- **Word Quiz** (menu item 10, or the quiz button in the dictionary): Gondi word -> meaning, or meaning -> Gondi word, in Hindi, English, Marathi or Telugu, 10/20/30 questions, retry missed words, listen to the word in Hindi. It uses whatever words are in your dictionary, including ones you add.
+- `MasaramGondi.ttf` (Noto Sans Masaram Gondi, SIL Open Font License) is included, so the Gondi script also works offline without Google Fonts.
+- Version in `sw.js` is `masram-v10`.

@@ -32,7 +32,7 @@ textarea{width:100%;min-height:90px;font:24px var(--g);background:var(--c);borde
 .keys button{font:24px var(--g);padding:4px 0;background:var(--c);border:1px solid var(--b);border-radius:8px}
 .tabs button{padding:6px 10px;border:1px solid var(--b);background:var(--c);border-radius:8px}.tabs .on{background:var(--p);color:#fff}
 .big{font:90px var(--g);text-align:center;margin:10px 0}
-input[type=text],select{padding:10px;border:1px solid var(--b);border-radius:10px;background:var(--c)}
+input[type=text],input[type=password],select{padding:10px;border:1px solid var(--b);border-radius:10px;background:var(--c)}
 .about{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:14px;margin-bottom:12px}.about h2{margin:0 0 6px;font-size:19px}.about p{margin:6px 0}a{color:var(--p)}a.btn{text-decoration:none;display:inline-block}a.btn.p{color:#fff}
 .ent{display:flex;gap:10px;align-items:center;background:var(--c);border:1px solid var(--b);border-radius:12px;padding:8px 10px;margin:6px 0;cursor:pointer}
 .vis{width:52px;height:52px;flex:none;display:flex;align-items:center;justify-content:center;font-size:30px}.vis img{max-width:100%;max-height:100%;border-radius:8px;object-fit:cover}
@@ -45,6 +45,11 @@ input[type=text],select{padding:10px;border:1px solid var(--b);border-radius:10p
 #ew{font:24px var(--g)}.ent input[type=text]{width:150px;padding:5px}
 #wd{font:56px var(--g);text-align:center;word-break:break-word}#wvis{text-align:center;font-size:60px}#wvis img{max-width:160px;border-radius:12px}
 #st,.warn{font-size:13px;color:var(--m)}.warn{color:#c77700}
+.srow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--b)}
+.srow .gl{font:30px var(--g);width:62px;text-align:center;flex:none}
+.srow .df{width:44px;flex:none;text-align:center;color:var(--m);font:18px var(--d)}
+.srow input{flex:1;min-width:0;font:20px var(--d)}.srow input.chg{border-color:var(--p);border-width:2px}
+.srow .btn{padding:8px 12px;flex:none}
 .cout{font-size:26px;line-height:1.7;white-space:pre-wrap;word-break:break-word;background:var(--c);border:1px solid var(--b);border-radius:12px;padding:10px;min-height:90px}
 #cin{min-height:110px}
 .inst-scrim{position:fixed;inset:0;background:#0008;z-index:30;display:flex;align-items:flex-end;justify-content:center}
@@ -96,6 +101,13 @@ input[type=text],select{padding:10px;border:1px solid var(--b);border-radius:10p
   <p>UPI ID: <b id="upi">sangramsinghmarkam01-1@okhdfcbank</b></p>
   <div class="row"><a class="btn p" id="pay" href="upi://pay?pa=sangramsinghmarkam01-1@okhdfcbank&amp;pn=Sangram%20Singh%20Markam&amp;tn=Help%20develop%20Masram%20Gondi%20app&amp;cu=INR">Donate via UPI</a><button class="btn" id="cu">Copy UPI ID</button></div>
   <p id="cm" style="font-size:13px;color:var(--m)">Tap &ldquo;Donate via UPI&rdquo; on a phone to open your UPI app, or copy the ID and pay from any UPI app.</p></div>
+ <div class="about" id="devcard"><h2>&#128736;&#65039; Developer option</h2>
+  <div id="devlock"><p>Enter the developer code to open the developer tools.</p>
+   <div class="row"><input type="password" id="devcode" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Developer code" aria-label="Developer code"><button class="btn p" id="devgo">Unlock</button></div>
+   <p class="sub" id="devmsg">&nbsp;</p></div>
+  <div id="devopen" hidden><p>Developer mode is on.</p>
+   <div class="row"><button class="btn p" id="devsnd">Sound Mapping (pronunciation)</button><button class="btn" id="devoff">Lock developer mode</button></div></div>
+ </div>
 </section>
 <section id="lesson" class="v" hidden><p class="warn" style="color:var(--m)">Tap a card to hear it in Hindi.</p><div class="grid" id="grid"></div></section>
 <section id="quiz" class="v" hidden>
@@ -114,6 +126,13 @@ input[type=text],select{padding:10px;border:1px solid var(--b);border-radius:10p
  <div class="row"><button class="btn p" id="cplay">&#9654; Listen (Hindi)</button><button class="btn" id="ccopy">Copy result</button><button class="btn" id="cclr">Clear</button></div>
  <p id="cst" class="sub">&nbsp;</p>
  <p class="sub">Conversion is letter by letter, so it sounds like Hindi but does not translate meaning.</p>
+</section>
+<section id="snd" class="v" hidden>
+ <p class="sub">Change how a letter sounds when the app reads it aloud. Type the Hindi sound you want in the box and tap &#9654; to test it. Leave a box empty to keep the default. Only the audio changes; the Hindi text shown stays the same. Your changes are saved on this device.</p>
+ <div class="tabs row" id="stabs"></div>
+ <div id="srows"></div>
+ <div class="row"><button class="btn" id="ssave">Save sounds file</button><button class="btn" id="sload">Load sounds file</button><button class="btn" id="sreset">Reset all</button><input type="file" id="sjf" accept=".json,application/json" style="display:none"></div>
+ <p id="sst" class="sub">&nbsp;</p>
 </section>
 <section id="reader" class="v" hidden>
  <textarea id="inp" placeholder="Type or tap Gondi letters below…"></textarea>
@@ -159,7 +178,7 @@ const L={vow:['Independent Vowels',VOW.map(v=>[ch(v[0]),v[1].toUpperCase()])],
  con:['Consonants',CR.map((r,i)=>[ch(0x11D0C+i),(r+'a').toUpperCase()])],
  sig:['Dependent Signs',[...SIG.map(s=>[KA+ch(s[0]),'K'+s[1].toUpperCase()]),...MRK.map(m=>[KA+ch(m[0]),'KA '+m[3]])]],
  dig:['Digits',[...Array(10)].map((_,i)=>[ch(0x11D50+i),''+i])]};
-let cur0='home';const BK={word:'dict'},T={conv:'Hindi \u21c4 Gondi Converter',dict:'Gondi Dictionary',editor:'Create / Edit Dictionary',about:'About & Support',word:'Word'};
+let cur0='home';const BK={word:'dict',snd:'about'},T={snd:'Sound Mapping',conv:'Hindi \u21c4 Gondi Converter',dict:'Gondi Dictionary',editor:'Create / Edit Dictionary',about:'About & Support',word:'Word'};
 function show(v,t){cur0=v;document.querySelectorAll('.v').forEach(e=>e.hidden=e.id!=v);$('#back').hidden=v=='home';$('#ttl').textContent=t||T[v]||'Masram Gondi Learning';if(v!='reader')stop();scrollTo(0,0)}
 $('#back').onclick=()=>{const p=BK[cur0]||'home';show(p);if(p=='dict')dRender()};
 [...Object.keys(L).map((k,i)=>[(i+1)+'. Learn '+L[k][0],()=>lesson(k)]),['5. Take Quiz',()=>{show('quiz','Quiz');next()}],['6. Reader & Hindi Audio',()=>{show('reader','Gondi → Hindi Audio');render()}],['7. Hindi \u21c4 Gondi Converter',()=>{show('conv');cRender()}],['8. Gondi Dictionary',()=>{show('dict');dRender()}],['9. Create / Edit Dictionary',()=>{show('editor');eRender()}]]
@@ -187,7 +206,7 @@ const st=t=>$('#st').textContent=t;
 function stop(){gen++;try{speechSynthesis.cancel()}catch(e){}mark([])}
 function play(list){if(!('speechSynthesis' in window)){st('Speech not supported on this browser');return}
  stop();const g=++gen,v=voices[$('#vs').value];
- list.forEach((s,i)=>{if(!s.t.trim())return;const u=new SpeechSynthesisUtterance(s.t);if(v){u.voice=v;u.lang=v.lang}else u.lang='hi-IN';u.rate=+$('#rate').value;
+ list.forEach((s,i)=>{if(!s.t.trim())return;const u=new SpeechSynthesisUtterance(snd(s.t));if(v){u.voice=v;u.lang=v.lang}else u.lang='hi-IN';u.rate=+$('#rate').value;
   u.onstart=()=>{if(g==gen){mark(s.e);st('Playing…')}};
   u.onend=()=>{if(g==gen&&i==list.length-1){mark([]);st('Completed')}};
   u.onerror=e=>{if(g==gen&&!/cancel|interrupt/.test(e.error))st('Speech error: '+e.error)};
@@ -306,6 +325,61 @@ const cst=t=>$('#cst').textContent=t;
 $('#ccopy').onclick=async()=>{const t=$('#cout').textContent;if(!t.trim())return cst('Nothing to copy');try{await navigator.clipboard.writeText(t);cst('Copied to clipboard')}catch(e){cst('Copy failed')}};
 $('#cclr').onclick=()=>{cin.value='';cRender();cst('\u00a0')};
 $('#cplay').onclick=()=>{const h=cdir=='g2h'?$('#cout').textContent:cin.value;if(!h.trim())return cst('No text to speak');play([{t:h,e:[]}]);cst('Playing in Hindi…')};
+// ---- Sound mapping: change how each letter is spoken (audio only) ----
+let SND={};try{const o=JSON.parse(localStorage.getItem('masramSound'));if(o&&typeof o=='object')SND=o}catch(e){}
+const saveSnd=()=>{try{localStorage.setItem('masramSound',JSON.stringify(SND))}catch(e){}};
+function snd(s){const ks=Object.keys(SND).filter(k=>k&&SND[k]).sort((a,b)=>b.length-a.length);if(!ks.length)return s;
+ const keep=CD.filter(x=>x.length>1); // joined letters (क्ष ज्ञ त्र) are letters of their own: change them only by their own key
+ let o='',i=0;while(i<s.length){const k=ks.find(k=>s.startsWith(k,i)),q=keep.find(c=>s.startsWith(c,i));
+  if(k&&!(q&&q.length>k.length)){o+=SND[k];i+=k.length}else if(q){o+=q;i+=q.length}else o+=s[i++]}return o}
+const SG={ // [tab name, rows of {g: Gondi shown, k: Devanagari key, p: prefix shown before the sign}]
+ 'Vowels':()=>VOW.map(v=>({g:ch(v[0]),k:v[2],p:''})),
+ 'Consonants':()=>CR.map((_,i)=>({g:ch(0x11D0C+i),k:CD[i],p:''})),
+ 'Signs':()=>{const seen=new Set(),r=[];[...SIG,...MRK].forEach(s=>{if(seen.has(s[2]))return;seen.add(s[2]);r.push({g:KA+ch(s[0]),k:s[2],p:CD[0]})});return r},
+ 'Digits':()=>[...Array(10)].map((_,i)=>({g:ch(0x11D50+i),k:String.fromCharCode(0x966+i),p:''}))};
+let stab='Vowels';const sst=t=>$('#sst').textContent=t;
+function sCount(){const n=Object.keys(SND).filter(k=>SND[k]).length;sst(n?n+' sound'+(n>1?'s':'')+' changed':'All sounds are at their defaults')}
+function sRender(){
+ const tb=$('#stabs');tb.textContent='';Object.keys(SG).forEach(n=>{const b=document.createElement('button');b.textContent=n;b.className=n==stab?'on':'';b.onclick=()=>{stab=n;sRender()};tb.append(b)});
+ const box=$('#srows');box.textContent='';
+ SG[stab]().forEach(r=>{const d=document.createElement('div');d.className='srow';
+  const gl=document.createElement('div');gl.className='gl';gl.textContent=r.g;
+  const df=document.createElement('div');df.className='df';df.textContent=r.p+r.k;
+  const inp=document.createElement('input');inp.type='text';inp.autocomplete='off';inp.spellcheck=false;inp.lang='hi';
+  inp.placeholder=r.p+r.k;inp.setAttribute('aria-label','Sound for '+r.g);inp.value=SND[r.k]?r.p+SND[r.k]:'';inp.classList.toggle('chg',!!SND[r.k]);
+  inp.oninput=()=>{let v=inp.value.normalize('NFD');if(r.p&&v.startsWith(r.p))v=v.slice(r.p.length);
+   if(v.trim())SND[r.k]=v;else delete SND[r.k];saveSnd();inp.classList.toggle('chg',!!SND[r.k]);sCount()};
+  const pb=document.createElement('button');pb.className='btn';pb.textContent='\u25b6';pb.setAttribute('aria-label','Listen to '+r.g);
+  pb.onclick=()=>play([{t:r.p+r.k,e:[]}]);
+  d.append(gl,df,inp,pb);box.append(d)});
+ sCount()}
+$('#ssave').onclick=()=>{if(!Object.keys(SND).length)return sst('Nothing to save yet. Change a sound first.');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(SND,null,2)],{type:'application/json'}));a.download='gondi_sounds_'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();sst('Sounds file saved')};
+$('#sload').onclick=()=>$('#sjf').click();
+$('#sjf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();
+ r.onload=()=>{let o;try{o=JSON.parse(r.result)}catch(x){return sst('This file is not valid JSON.')}
+  if(!o||typeof o!='object'||Array.isArray(o))return sst('This is not a sounds file.');
+  const n={};Object.keys(o).forEach(k=>{if(typeof o[k]=='string'&&o[k].trim())n[k]=o[k]});
+  if(!Object.keys(n).length)return sst('No sound changes found in this file.');
+  if(Object.keys(SND).length&&!confirm('Replace your current sound changes with the ones in this file?'))return;
+  SND=n;saveSnd();sRender()};r.readAsText(f)};
+$('#sreset').onclick=()=>{if(!Object.keys(SND).length)return sst('Nothing to reset');if(confirm('Reset all letters to their default sounds?')){SND={};saveSnd();sRender()}};
+// ---- Developer mode: opened only with the developer code ----
+const DEV_HASH='4764f610828574a58bf5b187700d9366552538304f92271c35f60aa5fdacbc54';
+let devFlag=false;
+const devOn=()=>{if(devFlag)return true;try{return localStorage.getItem('masramDev')=='1'}catch(e){return false}};
+function devRender(){const on=devOn();$('#devlock').hidden=on;$('#devopen').hidden=!on}
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const devMsg=t=>$('#devmsg').textContent=t;
+$('#devgo').onclick=async()=>{const v=$('#devcode').value.trim().toLowerCase();if(!v)return devMsg('Enter the code first.');
+ let ok;try{ok=(await sha(v))==DEV_HASH}catch(e){return devMsg('Developer mode needs a modern browser.')}
+ if(!ok){devMsg('Incorrect code.');$('#devcode').select();return}
+ devFlag=true;try{localStorage.setItem('masramDev','1')}catch(e){}
+ $('#devcode').value='';devMsg('\u00a0');devRender()};
+$('#devcode').onkeydown=e=>{if(e.key=='Enter')$('#devgo').click()};
+$('#devsnd').onclick=()=>{if(!devOn())return devRender();show('snd');sRender()};
+$('#devoff').onclick=()=>{devFlag=false;try{localStorage.removeItem('masramDev')}catch(e){}devRender()};
+devRender();
 saveS();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>

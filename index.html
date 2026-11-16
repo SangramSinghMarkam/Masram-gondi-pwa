@@ -67,6 +67,11 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
 .bigscore{font-size:48px;font-weight:700;text-align:center;margin:6px 0}
 #djta{width:100%;min-height:280px;box-sizing:border-box;font:14px/1.45 MasaramGondi,ui-monospace,Menlo,Consolas,monospace;padding:10px;border:1px solid var(--b);border-radius:10px;background:var(--c);color:var(--t);resize:vertical;tab-size:2;white-space:pre;overflow:auto}
 #djmsg{min-height:20px}#djmsg.err{color:#d9534f}#djmsg.ok{color:#2e8b57}
+.sl{display:block;font-size:14px;color:var(--m);margin:10px 0 0}.sl small{font-weight:400}
+.chk{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:15px}
+#ekb{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);border-top:1px solid var(--b);padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 14px #0002}
+#ekb[hidden]{display:none}#ekb .row{margin:6px 0}#ekb .keys{max-height:128px}.keys.hk button{font-family:var(--d)}
+#ekb .tabs button{padding:5px 9px}#editor.kb{padding-bottom:310px}#ekt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style></head><body>
 <header><button id="back" hidden>&larr;</button><h1 id="ttl">Masram Gondi Learning</h1></header>
 <main>
@@ -88,15 +93,34 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
 </section>
 <section id="editor" class="v" hidden>
  <div class="about"><h2>Add Gondi word</h2>
-  <input type="text" id="er" placeholder="Type in Roman (e.g. kamala) → converts to Gondi" autocapitalize="none" autocomplete="off">
-  <input type="text" id="ew" placeholder="Gondi word *"><div class="dev sub" id="edv"></div>
-  <input type="text" id="em" placeholder="Meanings / related words, comma separated (Hindi, English)">
-  <input type="text" id="ee" placeholder="Emoji (optional) e.g. &#127822;">
+  <p class="sub">Type Hindi (Devanagari) or Roman in the first box and it converts to Gondi. Tap <b>Show on-screen keyboard</b> for a Gondi and Hindi keyboard that types into the box you tapped last.</p>
+  <div class="row"><button class="btn p" id="ekbt">&#9000;&#65039; Show on-screen keyboard</button></div>
+  <label class="chk"><input type="checkbox" id="ehi" checked> Hindi typed in a Gondi box turns into Gondi automatically</label>
+  <label class="chk"><input type="checkbox" id="enat"> Use only the on-screen keyboard (hide the phone keyboard)</label>
+  <label class="sl">Type in Hindi or Roman <small>(converts to Gondi)</small></label>
+  <input type="text" id="er" class="dev" data-n="Hindi / Roman" placeholder="हिंदी में लिखें (कमल) या Roman (kamala)" autocapitalize="none" autocomplete="off" spellcheck="false">
+  <label class="sl">Gondi word * <small>(result &ndash; you can also type Gondi here)</small></label>
+  <input type="text" id="ew" class="g" data-g data-n="Gondi word" placeholder="Gondi word *" autocomplete="off" autocapitalize="none" spellcheck="false">
+  <div class="dev sub" id="edv"></div>
+  <label class="sl">Hindi meaning <small>(हिंदी)</small></label>
+  <input type="text" id="eh" class="dev" lang="hi" data-n="Hindi meaning" placeholder="हिंदी अर्थ" autocomplete="off">
+  <label class="sl">English meaning</label>
+  <input type="text" id="een" lang="en" data-n="English meaning" placeholder="English meaning" autocomplete="off" autocapitalize="none">
+  <label class="sl">Related Gondi words <small>(comma separated)</small></label>
+  <input type="text" id="erl" class="g" data-g data-n="Related Gondi words" placeholder="Gondi, Gondi, &hellip;" autocomplete="off" spellcheck="false">
+  <p class="sub">Several meanings in one box: separate them with a comma.</p>
+  <input type="text" id="ee" data-n="Emoji" placeholder="Emoji (optional) e.g. &#127822;">
   <select id="eit"><option value="none">No image</option><option value="url">Image URL</option><option value="file">Upload image</option></select>
   <input type="text" id="eiu" placeholder="https://example.com/image.jpg" hidden><input type="file" id="eif" accept="image/*" hidden>
   <button class="btn p" id="eadd">&#10133; Add entry</button></div>
  <div class="row"><button class="btn" id="esv">&#128190; Save JSON</button><button class="btn" id="eld">&#128194; Load JSON</button><button class="btn d" id="eclr">Clear all</button><span class="sub" id="ecnt"></span></div>
  <input type="search" id="efq" placeholder="Filter entries…"><div id="elist"></div>
+
+ <div id="ekb" hidden>
+  <div class="row"><b class="sub" id="ekt"></b><button class="btn" id="ekx">&#10005; Hide</button></div>
+  <div class="tabs row" id="ekl"></div><div class="tabs row" id="ekc"></div><div class="keys" id="ekk"></div>
+  <div class="row"><button class="btn" id="eksp">Space</button><button class="btn" id="ekcm">, Comma</button><button class="btn" id="ekbs">&#9003;</button></div>
+ </div>
 </section>
 <section id="about" class="v" hidden>
  <div class="about"><h2>Sangram Singh Markam</h2><p>Author &amp; developer</p>
@@ -307,19 +331,54 @@ $('#esv').onclick=()=>{if(!DB.length)return alert('The dictionary is empty.');co
 $('#eclr').onclick=()=>{if(confirm('Delete ALL dictionary entries? This cannot be undone.')){DB=[];FAV.clear();saveFav();save();dRender();eRender()}};
 // Editor
 const dv=()=>$('#edv').textContent=toDev($('#ew').value);
-$('#er').oninput=()=>{$('#ew').value=fromRoman($('#er').value);dv()};$('#ew').oninput=dv;
+const toGondiMix=s=>s.split(/([\u0900-\u097F\u200c\u200d]+)/).map((x,i)=>i%2?fromDev(x):fromRoman(x)).join('');
+$('#er').oninput=()=>{$('#ew').value=toGondiMix($('#er').value);dv()};$('#ew').oninput=dv;
 $('#eit').onchange=()=>{$('#eiu').hidden=$('#eit').value!='url';$('#eif').hidden=$('#eit').value!='file'};
 const shrink=f=>new Promise(r=>{const i=new Image,u=URL.createObjectURL(f);i.onload=()=>{const k=Math.min(1,240/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);r(c.toDataURL('image/jpeg',.8))};i.onerror=()=>r('');i.src=u});
 $('#eadd').onclick=async()=>{const w=$('#ew').value.trim();if(!w)return alert('Please enter a Gondi word.');
  const t=$('#eit').value;let img='';if(t=='url')img=$('#eiu').value.trim();else if(t=='file'&&$('#eif').files[0])img=await shrink($('#eif').files[0]);
- const m=$('#em').value.split(',').map(x=>x.trim()).filter(Boolean),em=$('#ee').value.trim(),o=DB.find(d=>d.primaryWord==w);
+ const sen=s=>s.split(/\s*[,;،，]\s*/).map(x=>x.trim()).filter(Boolean).join(' / '); // several senses of one language are joined with " / " (same as the built-in dictionary)
+ const m=[sen($('#eh').value),sen($('#een').value),...$('#erl').value.split(/\s*[,;،，]\s*/)].map(x=>x.trim()).filter(Boolean),em=$('#ee').value.trim(),o=DB.find(d=>d.primaryWord==w);
  if(o){m.forEach(x=>{if(!o.associatedWords.includes(x))o.associatedWords.push(x)});if(img)o.image=img;if(em)o.emoji=em}
  else DB.unshift({id:uid(),primaryWord:w,associatedWords:m,image:img,emoji:em});
- save();['er','ew','em','ee','eiu'].forEach(i=>$('#'+i).value='');$('#eif').value='';dv();eRender();dRender()};
+ save();['er','ew','eh','een','erl','ee','eiu'].forEach(i=>$('#'+i).value='');$('#eif').value='';dv();eRender();dRender()};
 function eRender(){const q=$('#efq').value.trim(),L=q?find(q):DB,box=$('#elist');box.textContent='';$('#ecnt').textContent=DB.length+' words';
  L.slice(0,100).forEach(x=>{const d=document.createElement('div');d.className='ent';d.style.cursor='default';d.dataset.id=x.id;
   d.innerHTML='<div class="vis">'+vis(x)+'</div><div class="mid"><div class="g hw">'+esc(x.primaryWord)+'</div><div class="dev sub">'+esc(toDev(x.primaryWord))+'</div><div class="row">'+x.associatedWords.map(w=>'<span class="tag">'+esc(w)+'<b class="rm" data-w="'+esc(w)+'">×</b></span>').join('')+'</div><div class="row"><input type="text" placeholder="Add meaning…"><button class="btn add">Add</button></div></div><button class="btn d del">🗑️</button>';box.append(d)});
  if(L.length>100){const p=document.createElement('p');p.className='sub';p.textContent='Showing 100 of '+L.length+' — use the filter to find others.';box.append(p)}}
+// ---- Add-word form: Hindi in every box + on-screen Gondi / Hindi keyboard ----
+const EKB={g:{Vowels:K.Vowels,Consonants:K.Consonants,Signs:K.Signs,Digits:K.Digits}};
+const HM='ा ि ी ु ू ृ े ै ो ौ ं ः ँ ़ ्'.split(' ');
+EKB.h={Vowels:'अ आ इ ई उ ऊ ऋ ए ऐ ओ औ ऑ'.split(' ').map(c=>[c,c]),Consonants:CD.map(c=>[c,c]),Signs:HM.map(c=>['\u25cc'+c,c]),Digits:[...Array(10)].map((_,i)=>{const c=String.fromCharCode(0x966+i);return[c,c]})};
+const EKG={};Object.keys(K).forEach(n=>EKG[n]=K[n].map(([c,t])=>[c,c,t]));
+let ekLay='g',ekCat='Vowels',eTgt=$('#ew');
+const ekRows=()=>ekLay=='g'?EKG[ekCat]:EKB.h[ekCat].map(([d,c])=>[d,c,c]);
+function ekDraw(){document.querySelectorAll('#ekl button').forEach(b=>b.classList.toggle('on',b.dataset.l==ekLay));
+ document.querySelectorAll('#ekc button').forEach(b=>b.classList.toggle('on',b.dataset.c==ekCat));
+ const k=$('#ekk');k.textContent='';k.classList.toggle('hk',ekLay=='h');
+ ekRows().forEach(([d,c,t])=>{const x=document.createElement('button');x.type='button';x.textContent=d;x.title=t||'';x.onclick=()=>eIns(c);k.append(x)})}
+[['g','Gondi'],['h','\u0939\u093f\u0928\u094d\u0926\u0940 Hindi']].forEach(([l,n])=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.dataset.l=l;b.onclick=()=>{ekLay=l;ekDraw()};$('#ekl').append(b)});
+Object.keys(K).forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.dataset.c=n;b.onclick=()=>{ekCat=n;ekDraw()};$('#ekc').append(b)});
+const ekName=()=>$('#ekt').textContent='Typing into: '+((eTgt&&(eTgt.dataset.n||eTgt.placeholder))||'tap a box first');
+function gConv(t){ // Hindi typed in a Gondi box becomes Gondi (cursor stays where it was)
+ if(!$('#ehi').checked||!t.matches('[data-g]'))return;const v=t.value;if(!/[\u0900-\u097F]/.test(v))return;
+ const a=t.selectionStart==null?v.length:t.selectionStart,L=fromDev(v.slice(0,a)),R=fromDev(v.slice(a));
+ t.value=L+R;try{t.setSelectionRange(L.length,L.length)}catch(e){}}
+function eIns(s){const t=eTgt;if(!t)return;const a=t.selectionStart==null?t.value.length:t.selectionStart,b=t.selectionEnd==null?a:t.selectionEnd;
+ t.setRangeText(s,a,b,'end');t.dispatchEvent(new Event('input',{bubbles:true}))}
+$('#ekbs').onclick=()=>{const t=eTgt;if(!t)return;let a=t.selectionStart==null?t.value.length:t.selectionStart,b=t.selectionEnd==null?a:t.selectionEnd;
+ if(a==b){if(!a)return;a-=/[\uDC00-\uDFFF]/.test(t.value[a-1])?2:1}t.setRangeText('',a,b,'end');t.dispatchEvent(new Event('input',{bubbles:true}))};
+$('#eksp').onclick=()=>eIns(' ');$('#ekcm').onclick=()=>eIns(', ');
+// keep the focus and cursor in the box while keys are tapped
+$('#ekb').addEventListener('mousedown',e=>e.preventDefault());
+function ekShow(on){$('#ekb').hidden=!on;$('#editor').classList.toggle('kb',on);$('#ekbt').textContent=on?'\u2328\ufe0f Hide on-screen keyboard':'\u2328\ufe0f Show on-screen keyboard';if(on){ekName();ekDraw()}}
+$('#ekbt').onclick=()=>ekShow($('#ekb').hidden);$('#ekx').onclick=()=>ekShow(false);
+$('#enat').onchange=()=>{const on=$('#enat').checked;document.querySelectorAll('#editor input[type=text],#editor input[type=search]').forEach(i=>on?i.setAttribute('inputmode','none'):i.removeAttribute('inputmode'));if(on)ekShow(true)};
+$('#editor').addEventListener('focusin',e=>{const t=e.target;if(!t.matches('input[type=text],input[type=search]')||t.id=='eiu')return;
+ eTgt=t;if($('#enat').checked)t.setAttribute('inputmode','none');ekName()});
+document.querySelectorAll('#editor [data-g]').forEach(t=>{
+ t.addEventListener('input',e=>{if(!e.isComposing){gConv(t);if(t.id=='ew')dv()}});
+ t.addEventListener('compositionend',()=>{gConv(t);if(t.id=='ew')dv();t.dispatchEvent(new Event('input',{bubbles:true}))})});
 $('#efq').oninput=eRender;
 $('#elist').onclick=ev=>{const row=ev.target.closest('.ent'),x=row&&DB.find(d=>d.id==row.dataset.id);if(!x)return;const t=ev.target;
  if(t.matches('.rm'))x.associatedWords=x.associatedWords.filter(w=>w!=t.dataset.w);

@@ -41,7 +41,7 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
 .chip{padding:6px 12px;border:1px solid var(--b);background:var(--c);border-radius:16px}.chip.on{background:var(--p);color:#fff}
 .tag{background:var(--b);border-radius:12px;padding:2px 8px;font-size:14px}.rm{cursor:pointer;margin-left:4px}
 .btn.d{background:#d9534f;color:#fff;border-color:#d9534f}
-#dq,#efq,.about input[type=text],.about select{width:100%;font-size:17px;padding:10px;margin:5px 0;border:1px solid var(--b);border-radius:10px;background:var(--c)}
+#dq,#efq,#djq,.about input[type=text],.about select{width:100%;font-size:17px;padding:10px;margin:5px 0;border:1px solid var(--b);border-radius:10px;background:var(--c)}
 #ew{font:24px var(--g)}.ent input[type=text]{width:150px;padding:5px}
 #wd{font:56px var(--g);text-align:center;word-break:break-word}#wvis{text-align:center;font-size:60px}#wvis img{max-width:160px;border-radius:12px}
 #st,.warn{font-size:13px;color:var(--m)}.warn{color:#c77700}
@@ -65,6 +65,8 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
 .btn.ok{background:#2e9e5b;color:#fff;border-color:#2e9e5b}.btn.ok small{color:#fff}.btn.no{background:#d9534f;color:#fff;border-color:#d9534f}.btn.no small{color:#fff}
 .pbar{height:6px;background:var(--b);border-radius:3px;overflow:hidden;margin:8px 0}.pbar i{display:block;height:100%;background:var(--p)}
 .bigscore{font-size:48px;font-weight:700;text-align:center;margin:6px 0}
+#djta{width:100%;min-height:280px;box-sizing:border-box;font:14px/1.45 MasaramGondi,ui-monospace,Menlo,Consolas,monospace;padding:10px;border:1px solid var(--b);border-radius:10px;background:var(--c);color:var(--t);resize:vertical;tab-size:2;white-space:pre;overflow:auto}
+#djmsg{min-height:20px}#djmsg.err{color:#d9534f}#djmsg.ok{color:#2e8b57}
 </style></head><body>
 <header><button id="back" hidden>&larr;</button><h1 id="ttl">Masram Gondi Learning</h1></header>
 <main>
@@ -111,8 +113,22 @@ input[type=text],input[type=password],select{padding:10px;border:1px solid var(-
    <div class="row"><input type="password" id="devcode" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Developer code" aria-label="Developer code"><button class="btn p" id="devgo">Unlock</button></div>
    <p class="sub" id="devmsg">&nbsp;</p></div>
   <div id="devopen" hidden><p>Developer mode is on.</p>
-   <div class="row"><button class="btn p" id="devsnd">Sound Mapping (pronunciation)</button><button class="btn" id="devoff">Lock developer mode</button></div></div>
+   <div class="row"><button class="btn p" id="devsnd">Sound Mapping (pronunciation)</button><button class="btn p" id="devdj">Edit Dictionary JSON &amp; Email</button><button class="btn" id="devoff">Lock developer mode</button></div></div>
  </div>
+</section>
+<section id="devjson" class="v" hidden>
+ <div class="about"><h2>&#128736;&#65039; Edit dictionary JSON</h2>
+  <p class="sub">Search a word, tap Edit, change its JSON (<code>primaryWord</code>, <code>associatedWords</code>, <code>image</code>, <code>emoji</code>) and tap Apply. When you are done, tap <b>Send JSON to email</b> to send the whole dictionary file to the developer address. Changes are saved on this device.</p>
+  <input type="search" id="djq" placeholder="Search a word to edit&hellip;" autocomplete="off">
+  <div class="row"><button class="btn" id="djnew">&#10133; New entry</button><button class="btn p" id="djsend">&#9993;&#65039; Send JSON to email</button><button class="btn" id="djdl">&#128190; Download JSON</button><span class="sub" id="djcnt"></span></div>
+  <p class="sub" id="djsm">&nbsp;</p>
+ </div>
+ <div class="about" id="djed" hidden><b id="djtt"></b>
+  <textarea id="djta" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Entry JSON"></textarea>
+  <p id="djmsg" class="sub">&nbsp;</p>
+  <div class="row"><button class="btn p" id="djapply">Apply</button><button class="btn d" id="djdel">Delete entry</button><button class="btn" id="djcancel">Cancel</button></div>
+ </div>
+ <div id="djlist"></div>
 </section>
 <section id="lesson" class="v" hidden><p class="warn" style="color:var(--m)">Tap a card to hear it in Hindi.</p><div class="grid" id="grid"></div></section>
 <section id="quiz" class="v" hidden>
@@ -184,7 +200,7 @@ const L={vow:['Independent Vowels',VOW.map(v=>[ch(v[0]),v[1].toUpperCase()])],
  con:['Consonants',CR.map((r,i)=>[ch(0x11D0C+i),(r+'a').toUpperCase()])],
  sig:['Dependent Signs',[...SIG.map(s=>[KA+ch(s[0]),'K'+s[1].toUpperCase()]),...MRK.map(m=>[KA+ch(m[0]),'KA '+m[3]])]],
  dig:['Digits',[...Array(10)].map((_,i)=>[ch(0x11D50+i),''+i])]};
-let cur0='home';const BK={word:'dict',snd:'about'},T={snd:'Sound Mapping',conv:'Hindi \u21c4 Gondi Converter',dict:'Gondi Dictionary',editor:'Create / Edit Dictionary',about:'About & Support',word:'Word',wq:'Word Quiz'};
+let cur0='home';const BK={word:'dict',snd:'about',devjson:'about'},T={snd:'Sound Mapping',devjson:'Edit Dictionary (Developer)',conv:'Hindi \u21c4 Gondi Converter',dict:'Gondi Dictionary',editor:'Create / Edit Dictionary',about:'About & Support',word:'Word',wq:'Word Quiz'};
 function show(v,t){cur0=v;document.querySelectorAll('.v').forEach(e=>e.hidden=e.id!=v);$('#back').hidden=v=='home';$('#ttl').textContent=t||T[v]||'Masram Gondi Learning';if(v!='reader')stop();scrollTo(0,0)}
 $('#back').onclick=()=>{const p=BK[cur0]||'home';show(p);if(p=='dict')dRender()};
 [...Object.keys(L).map((k,i)=>[(i+1)+'. Learn '+L[k][0],()=>lesson(k)]),['5. Take Quiz',()=>{show('quiz','Quiz');next()}],['6. Reader & Hindi Audio',()=>{show('reader','Gondi → Hindi Audio');render()}],['7. Hindi \u21c4 Gondi Converter',()=>{show('conv');cRender()}],['8. Gondi Dictionary',()=>{show('dict');dRender()}],['9. Create / Edit Dictionary',()=>{show('editor');eRender()}],['10. Word Quiz (from Dictionary)',()=>{show('wq');wqSetup()}]]
@@ -245,10 +261,12 @@ try{FAV=new Set(JSON.parse(localStorage.getItem('gdFav')||'[]'))}catch(e){}
 const saveFav=()=>{try{localStorage.setItem('gdFav',JSON.stringify([...FAV]))}catch(e){}};
 const save=()=>idb('put',DB).catch(()=>alert('Could not store the dictionary on this device. Please use Save JSON to keep a backup.'));
 idb('get').then(d=>{if(Array.isArray(d))DB=d;dRender();eRender();if(!DB.length&&!seeded())seed()}).catch(()=>{seed()});
-const key=w=>w.toLowerCase(),sorted=()=>[...DB].sort((a,b)=>key(a.primaryWord)<key(b.primaryWord)?-1:1);
+const key=w=>w.toLowerCase();let _sk=null,_sv=null; // sorted list is remembered until the dictionary changes (keeps big dictionaries fast)
+const sorted=()=>{if(_sk&&_sk.d===DB&&_sk.n===DB.length)return _sv;_sv=[...DB].sort((a,b)=>key(a.primaryWord)<key(b.primaryWord)?-1:1);_sk={d:DB,n:DB.length};return _sv};
+const DVC=new Map(),dvc=w=>{let d=DVC.get(w);if(d===undefined){d=toDev(w);DVC.set(w,d)}return d};
 const vis=e=>e.image?'<img src="'+esc(e.image)+'" alt="">':esc(e.emoji||'📖');
-function find(q){q=q.trim();const all=sorted();if(!q)return all;const ql=q.toLowerCase(),g=fromRoman(q).replace(/\u{11D44}$/u,''),rank=e=>{const w=e.primaryWord;return w.startsWith(q)||w.startsWith(g)||toDev(w).startsWith(q)?0:1};
- return all.filter(e=>{const w=e.primaryWord,d=toDev(w);return w.toLowerCase().includes(ql)||w.includes(g)||d.includes(q)||e.associatedWords.some(m=>m.toLowerCase().includes(ql))}).sort((a,b)=>rank(a)-rank(b))}
+function find(q){q=q.trim();const all=sorted();if(!q)return all;const ql=q.toLowerCase(),g=fromRoman(q).replace(/\u{11D44}$/u,''),rank=e=>{const w=e.primaryWord;return w.startsWith(q)||w.startsWith(g)||dvc(w).startsWith(q)?0:1};
+ return all.filter(e=>{const w=e.primaryWord,d=dvc(w);return w.toLowerCase().includes(ql)||w.includes(g)||d.includes(q)||e.associatedWords.some(m=>m.toLowerCase().includes(ql))}).sort((a,b)=>rank(a)-rank(b))}
 function item(e){const d=document.createElement('div');d.className='ent';
  d.innerHTML='<div class="vis">'+vis(e)+'</div><div class="mid"><div class="g hw">'+esc(e.primaryWord)+'</div><div class="dev sub">'+esc(toDev(e.primaryWord))+'</div><div class="sub">'+esc(e.associatedWords.filter(w=>!isG(w)).slice(0,4).join(', '))+'</div></div><button class="star">'+(FAV.has(e.id)?'★':'☆')+'</button>';
  d.onclick=ev=>{if(ev.target.closest('.star')){fav(e);dRender()}else openW(e)};return d}
@@ -280,7 +298,8 @@ const norm=a=>(Array.isArray(a)?a:[]).filter(x=>x&&typeof x.primaryWord=='string
 function loadJSON(f){const r=new FileReader();r.onload=()=>{let n;try{n=norm(JSON.parse(r.result))}catch(e){return alert('This file is not valid JSON.')}
  if(!n.length)return alert('No dictionary entries found in this file.');
  if(!(DB.length&&confirm('Add these '+n.length+' entries to your current dictionary?\nOK = Merge, Cancel = Replace')))DB=[];
- n.forEach(x=>{const o=DB.find(d=>d.primaryWord==x.primaryWord);if(o){x.associatedWords.forEach(w=>{if(!o.associatedWords.includes(w))o.associatedWords.push(w)});o.image=o.image||x.image;o.emoji=o.emoji||x.emoji}else{if(DB.some(d=>d.id==x.id))x.id=uid();DB.push(x)}});
+ const ix=new Map(DB.map(d=>[d.primaryWord,d])),ids=new Set(DB.map(d=>d.id));
+ n.forEach(x=>{const o=ix.get(x.primaryWord);if(o){x.associatedWords.forEach(w=>{if(!o.associatedWords.includes(w))o.associatedWords.push(w)});o.image=o.image||x.image;o.emoji=o.emoji||x.emoji}else{if(ids.has(x.id))x.id=uid();DB.push(x);ix.set(x.primaryWord,x);ids.add(x.id)}});
  save();dRender();eRender();alert(n.length+' entries loaded. The dictionary now has '+DB.length+' words.')};r.readAsText(f)}
 $('#jf').onchange=e=>{if(e.target.files[0])loadJSON(e.target.files[0]);e.target.value=''};
 $('#dload').onclick=$('#eld').onclick=()=>$('#jf').click();
@@ -314,9 +333,9 @@ $('#cu').onclick=async()=>{try{await navigator.clipboard.writeText($('#upi').tex
 const isG=s=>/[\u{11D00}-\u{11D5F}]/u.test(s);
 const BUILTIN='gondi_dictionary_converted.json',seeded=()=>{try{return localStorage.getItem('gdSeeded')=='1'}catch(e){return false}};
 async function builtin(){const r=await fetch(BUILTIN);if(!r.ok)throw new Error('missing');return norm(await r.json())}
-function mergeIn(n){n.forEach(x=>{const o=DB.find(d=>d.primaryWord==x.primaryWord);
+function mergeIn(n){const ix=new Map(DB.map(d=>[d.primaryWord,d])),ids=new Set(DB.map(d=>d.id));n.forEach(x=>{const o=ix.get(x.primaryWord);
  if(o){x.associatedWords.forEach(w=>{if(!o.associatedWords.includes(w))o.associatedWords.push(w)});o.image=o.image||x.image;o.emoji=o.emoji||x.emoji}
- else{if(DB.some(d=>d.id==x.id))x.id=uid();DB.push(x)}})}
+ else{if(ids.has(x.id))x.id=uid();DB.push(x);ix.set(x.primaryWord,x);ids.add(x.id)}})}
 async function seed(){try{const n=await builtin();if(!n.length||DB.length)return;DB=n;idb('put',DB).catch(()=>{});try{localStorage.setItem('gdSeeded','1')}catch(e){}dRender();eRender()}catch(e){}}
 $('#dbuilt').onclick=async()=>{let n;try{n=await builtin()}catch(e){return alert('The built-in dictionary could not be loaded. Open the app once while online, then try again.')}
  if(DB.length&&confirm('Replace your current dictionary with the built-in one ('+n.length+' words)?\n\nOK = Replace\nCancel = Keep my words and add the missing ones'))DB=[];
@@ -456,6 +475,54 @@ $('#devcode').onkeydown=e=>{if(e.key=='Enter')$('#devgo').click()};
 $('#devsnd').onclick=()=>{if(!devOn())return devRender();show('snd');sRender()};
 $('#devoff').onclick=()=>{devFlag=false;try{localStorage.removeItem('masramDev')}catch(e){}devRender()};
 devRender();
+
+// ---- Developer: edit dictionary JSON and send it by e-mail ----
+const DEV_EMAIL='sangramsinghmarkam01@gmail.com';
+let djCur=null,djNew=false;
+const djSm=(t,c)=>{const m=$('#djsm');m.textContent=t||'\u00a0';m.className='sub'+(c?' '+c:'')};
+const djMsg=(t,c)=>{const m=$('#djmsg');m.textContent=t||'\u00a0';m.className='sub'+(c?' '+c:'')};
+function djRender(){if(!devOn()){show('about','About & Support');devRender();return}
+ const q=$('#djq').value.trim(),L=q?find(q):sorted(),box=$('#djlist');$('#djcnt').textContent=DB.length+' words';box.textContent='';
+ L.slice(0,50).forEach(e=>{const d=document.createElement('div');d.className='ent';d.style.cursor='default';
+  d.innerHTML='<div class="mid"><div class="g hw">'+esc(e.primaryWord)+'</div><div class="sub">'+esc(e.associatedWords.filter(w=>!isG(w)).slice(0,3).join(', '))+'</div></div><button class="btn">&#9999;&#65039; Edit</button>';
+  d.querySelector('button').onclick=()=>djOpen(e);box.append(d)});
+ if(!L.length){const p=document.createElement('p');p.className='sub';p.textContent=DB.length?'No matching words found.':'The dictionary is empty. Use Built-in words on the Gondi Dictionary screen first.';box.append(p)}
+ else if(L.length>50){const p=document.createElement('p');p.className='sub';p.textContent='Showing 50 of '+L.length+' \u2014 search to narrow down.';box.append(p)}}
+function djOpen(e){djNew=!e;djCur=e||null;const o=e||{id:uid(),primaryWord:'',associatedWords:[],image:'',emoji:''};
+ $('#djtt').textContent=djNew?'New entry':'Editing: '+o.primaryWord;$('#djta').value=JSON.stringify(o,null,2);$('#djdel').hidden=djNew;djMsg('');
+ $('#djed').hidden=false;$('#djed').scrollIntoView({block:'start',behavior:'smooth'})}
+function djAfterChange(){_sk=null;save();try{localStorage.setItem('gdDevEdited','1')}catch(e){}dRender();eRender();djRender()}
+$('#devdj').onclick=()=>{if(!devOn())return devRender();show('devjson');$('#djed').hidden=true;djSm('');djRender()};
+$('#djq').oninput=djRender;
+$('#djnew').onclick=()=>djOpen(null);
+$('#djcancel').onclick=()=>{$('#djed').hidden=true;djCur=null};
+$('#djapply').onclick=()=>{if(!devOn())return djRender();let o;
+ try{o=JSON.parse($('#djta').value)}catch(e){return djMsg('Not valid JSON: '+e.message,'err')}
+ if(!o||typeof o!='object'||Array.isArray(o))return djMsg('The entry must be one JSON object { ... }.','err');
+ if(typeof o.primaryWord!='string'||!o.primaryWord.trim())return djMsg('"primaryWord" must be a non-empty text.','err');
+ if(o.associatedWords!==undefined&&!Array.isArray(o.associatedWords))return djMsg('"associatedWords" must be a list like ["a","b"].','err');
+ const n=norm([o])[0];
+ if(DB.some(x=>x!==djCur&&x.primaryWord==n.primaryWord))return djMsg('Another entry already uses this primaryWord. Edit that one instead.','err');
+ if(DB.some(x=>x!==djCur&&x.id==n.id))n.id=uid();
+ if(djNew){DB.unshift(n);djCur=n;djNew=false;$('#djdel').hidden=false}
+ else{if(djCur.id!=n.id&&FAV.has(djCur.id)){FAV.delete(djCur.id);FAV.add(n.id);saveFav()}Object.assign(djCur,n)}
+ $('#djta').value=JSON.stringify(djCur,null,2);$('#djtt').textContent='Editing: '+djCur.primaryWord;
+ djAfterChange();djMsg('Saved on this device. '+DB.length+' words in total.','ok')};
+$('#djdel').onclick=()=>{if(!djCur||!confirm('Delete "'+djCur.primaryWord+'"?'))return;DB=DB.filter(d=>d!==djCur);FAV.delete(djCur.id);saveFav();djCur=null;$('#djed').hidden=true;djAfterChange();djSm('Entry deleted.','ok')};
+const djFile=()=>{const day=new Date().toISOString().slice(0,10),name='gondi_dictionary_'+day+'.json',json=JSON.stringify(DB,null,2);
+ return{day,name,json,file:new File([json],name,{type:'application/json'})}};
+function djDownload(f){const a=document.createElement('a');a.href=URL.createObjectURL(f.file);a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5e3)}
+$('#djdl').onclick=()=>{if(!DB.length)return djSm('The dictionary is empty.','err');djDownload(djFile());djSm('JSON file downloaded.','ok')};
+$('#djsend').onclick=async()=>{if(!devOn())return djRender();if(!DB.length)return djSm('The dictionary is empty.','err');
+ const f=djFile(),subject='Masram Gondi dictionary JSON ('+DB.length+' words)',body='Masram Gondi dictionary file: '+f.name+'\n'+DB.length+' words\nDate: '+f.day;
+ try{await navigator.clipboard.writeText(DEV_EMAIL)}catch(e){}
+ if(navigator.canShare&&navigator.canShare({files:[f.file]})){
+  try{await navigator.share({files:[f.file],title:subject,text:body});return djSm('In the share sheet choose Gmail or Email and send it to '+DEV_EMAIL+' (address copied).','ok')}
+  catch(e){if(e&&e.name=='AbortError')return djSm('Sharing cancelled.')}}
+ // Fallback (computers / browsers that cannot share files): download the file and open an e-mail draft. A web page cannot attach files itself.
+ djDownload(f);
+ location.href='mailto:'+DEV_EMAIL+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body+'\n\nPlease attach the downloaded file "'+f.name+'" to this e-mail before sending.');
+ djSm('File downloaded. Your e-mail app opened a draft to '+DEV_EMAIL+' \u2014 attach the downloaded file and send.','ok')};
 saveS();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>

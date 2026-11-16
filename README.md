@@ -25,4 +25,11 @@ Changes are saved on the device and used everywhere the app speaks. Use **Save s
 - `associatedWords` order: Hindi, English, Marathi, Telugu meanings (each present only if known; several senses are joined with ` / `), then related Gondi words (variants / compare / see). The quiz tells meanings apart by script: first Devanagari = Hindi, second = Marathi, Latin = English, Telugu script = Telugu. Gondi-script items are related words.
 - **Word Quiz** (menu item 10, or the quiz button in the dictionary): Gondi word -> meaning, or meaning -> Gondi word, in Hindi, English, Marathi or Telugu, 10/20/30 questions, retry missed words, listen to the word in Hindi. It uses whatever words are in your dictionary, including ones you add.
 - `MasaramGondi.ttf` (Noto Sans Masaram Gondi, SIL Open Font License) is included, so the Gondi script also works offline without Google Fonts.
-- Version in `sw.js` is `masram-v10`.
+- Version in `sw.js` is `masram-v12`.
+- **Big dictionaries:** the dictionary screen remembers its sorted list and the Hindi spelling of each word, and Load JSON merges with a lookup table, so loading the 18,000-sentence phrasebook stays fast.
+
+## Developer: edit dictionary JSON and e-mail it
+Support page > Developer option > unlock with the developer code > **Edit Dictionary JSON & Email**.
+- Search a word, tap **Edit**, change its JSON (`primaryWord`, `associatedWords`, `image`, `emoji`) and tap **Apply**. **New entry** adds a word; **Delete entry** removes it. The JSON is validated and duplicates of `primaryWord` are blocked.
+- **Send JSON to email** sends the whole dictionary file to sangramsinghmarkam01@gmail.com. On phones the share sheet opens with the file attached (choose Gmail/Email). On computers the file is downloaded and an e-mail draft opens, so attach the downloaded file. (A web page cannot send e-mail or attach files silently without a server.)
+- **Download JSON** only saves the file.

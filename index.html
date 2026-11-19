@@ -6,8 +6,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#4b5fc9">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Masaram+Gondi&display=swap" rel="stylesheet">
 <style>
+@font-face{font-family:'Noto Sans Devanagari';font-weight:400;font-display:swap;src:url(fonts/devanagari-400.woff2) format('woff2')}
+@font-face{font-family:'Noto Sans Devanagari';font-weight:600;font-display:swap;src:url(fonts/devanagari-600.woff2) format('woff2')}
+@font-face{font-family:'Noto Sans Masaram Gondi';font-weight:400;font-display:swap;src:url(fonts/masaram-gondi-400.woff2) format('woff2')}
 @font-face{font-family:MasaramGondi;src:local('Noto Sans Masaram Gondi'),local('NotoSansMasaramGondi-Regular'),url(MasaramGondi.ttf)}
 :root{--p:#4b5fc9;--bg:#f4f6fb;--c:#fff;--t:#1f2430;--m:#6b7285;--b:#d9deea;--g:MasaramGondi,'Noto Sans Masaram Gondi','Segoe UI Historic',sans-serif;--d:'Noto Sans Devanagari','Nirmala UI',Mangal,sans-serif}
 @media(prefers-color-scheme:dark){:root{--bg:#14161d;--c:#1e222c;--t:#e8eaf0;--m:#9aa1b5;--b:#343a4a}}
@@ -632,9 +634,8 @@ if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWor
  async function offState(){const s=$('#offst');
   if(local||!('serviceWorker' in navigator)){s.textContent='Offline mode works when the app is opened from its https:// web address.';return}
   s.textContent='Offline mode: preparing\u2026';
-  try{await navigator.serviceWorker.ready;const l=document.querySelector('link[rel=stylesheet][href^="http"]');
-   const f=(l&&await caches.match(l.href))||await caches.match('MasaramGondi.ttf');
-   s.textContent=f?'Offline mode: ready. The app and its fonts work without internet.':'Offline mode: the app is ready. Open it once more while online so the Hindi and Gondi fonts are saved too.'}catch(e){s.textContent='Offline mode is not available in this browser.'}}
+  try{await navigator.serviceWorker.ready;const f=await caches.match('gondi_dictionary_converted.json')&&await caches.match('fonts/masaram-gondi-400.woff2');
+    s.textContent=f?'Offline mode: ready. The app, dictionary and fonts work without internet.':'Offline mode: still saving files. Keep the app open a moment while online.'}catch(e){s.textContent='Offline mode is not available in this browser.'}}
  offState();$('#sup').addEventListener('click',offState);
 })();
 </script></body></html>
